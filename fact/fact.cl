@@ -1,7 +1,14 @@
 class Main inherits A2I {
-    main(): Object {
-        (new IO).out_string(i2a(ifact(a2i((new IO).in_string()))).concat("\n"))
-    };
+  prompt : String <- "Input number\n";
+  main(): Object { {
+       (new IO)@IO.out_string(prompt);
+       let input: String <-(new IO).in_string(),
+           num: Int <- a2i(input),
+           fact: Int <- ifact(num),
+           output: String <- i2a(fact).concat("\n")
+       in
+           (new IO).out_string(output);
+    } };
 
     fact(i: Int): Int {
         if (i = 0) then 1
@@ -10,8 +17,8 @@ class Main inherits A2I {
     };
 
     ifact(i: Int): Int {
-        let fact: Int <- 1 in {
-            while (not (i = 0)) loop {
+      let fact: Int <- 1 in {
+        while (not (i = 0)) loop {
                 fact <- fact * i;
                 i <- i - 1;
             } pool;
