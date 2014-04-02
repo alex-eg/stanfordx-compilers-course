@@ -88,6 +88,7 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
 "(" { return ('('); }
 ")" { return (')'); }
 "." { return ('.'); }
+"," { return (','); }
 "@" { return ('@'); }
 "+" { return ('+'); }
 "-" { return ('-'); }
