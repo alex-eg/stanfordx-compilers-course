@@ -37,6 +37,8 @@ char *string_buf_ptr;
 int curr_len;
 bool str_overflow_flag;
 
+int comment_level = 0;
+
 extern int curr_lineno;
 extern int verbose_flag;
 
@@ -91,11 +93,18 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
 "/" { return ('/'); }
 "<-" { return (ASSIGN); }
 
-<INITIAL>"(*" BEGIN(IN_COMMENT);
+<INITIAL,IN_COMMENT>"(*" { 
+    comment_level++;
+    BEGIN(IN_COMMENT);
+ }
 
-<IN_COMMENT>"*)" BEGIN(INITIAL);
-<IN_COMMENT>[^*\n]+   // eat comment in chunks
-<IN_COMMENT>"*"       // eat the lone star
+<IN_COMMENT>"*)" {
+    comment_level--;
+    if (comment_level == 0) {
+        BEGIN(INITIAL);
+    }
+ }
+<IN_COMMENT>.
 <IN_COMMENT>\n curr_lineno++;
 <IN_COMMENT><<EOF>> {
     cool_yylval.error_msg = "EOF in comment";
@@ -114,10 +123,26 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
     string_buf_ptr = string_buf;
     BEGIN(IN_STRING);
  }
+<IN_STRING>"\\\\" {
+    *string_buf_ptr++ = '\\';
+    curr_len++;
+    check_str(curr_len);
+ }
+<IN_STRING>\\\n {
+    *string_buf_ptr++ = '\n';
+    curr_lineno++;
+    curr_len++;
+    check_str(curr_len);
+ }
 <IN_STRING>\\n {
     *string_buf_ptr++ = '\n';
     curr_len++;
     check_str(curr_len);
+ }
+<IN_STRING>\0 {
+    cool_yylval.error_msg = "String contains null character";
+    BEGIN(INITIAL);
+    return (ERROR);
  }
 <IN_STRING>\\t {
     *string_buf_ptr++ = '\t';
@@ -131,6 +156,16 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
  }
 <IN_STRING>\\f {
     *string_buf_ptr++ = '\f';
+    curr_len++;
+    check_str(curr_len);
+ }
+<IN_STRING>\\r {
+    *string_buf_ptr++ = '\r';
+    curr_len++;
+    check_str(curr_len);
+ }
+<IN_STRING>\\v {
+    *string_buf_ptr++ = '\v';
     curr_len++;
     check_str(curr_len);
  }
@@ -151,11 +186,7 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
         cool_yylval.error_msg = "Unterminated string constant";
     }
     curr_lineno++;
-    return (ERROR);
     BEGIN(INITIAL);
- }
-<IN_STRING>\0 {
-    cool_yylval.error_msg = "String contains null character";
     return (ERROR);
  }
 <IN_STRING><<EOF>> {
@@ -208,6 +239,7 @@ f[Aa][Ll][Ss][Ee] {
     return (INT_CONST);
 }
 
+"--".*\n curr_lineno++;/* one-line comment */
 [ \t\f\r\v]+
 \n curr_lineno++;
 
