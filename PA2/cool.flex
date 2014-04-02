@@ -179,6 +179,11 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
     curr_len++;
     check_str(curr_len);
  }
+<IN_STRING>\\. {
+    *string_buf_ptr++ = yytext[1];
+    curr_len++;
+    check_str(curr_len);
+ }
 <IN_STRING,STR_OVERFLOW>\n {
     if (str_overflow_flag) {
         cool_yylval.error_msg = "String constant too long";
