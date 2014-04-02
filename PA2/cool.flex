@@ -36,6 +36,7 @@ char *string_buf_ptr;
 
 int curr_len;
 bool str_overflow_flag;
+bool str_has_null = false;
 
 int comment_level = 0;
 
@@ -50,6 +51,7 @@ void check_str(int curr_len);
 %x IN_COMMENT
 %x IN_STRING
 %x STR_OVERFLOW
+%x NULL_IN_STR
 
 NUM [0-9]+
 IDOBJ [a-z]([A-z]|[0-9]|_)*
@@ -120,6 +122,7 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
 <INITIAL>\" {
     curr_len = 0;
     str_overflow_flag = false;
+    str_has_null = false;
     string_buf_ptr = string_buf;
     BEGIN(IN_STRING);
  }
@@ -138,11 +141,6 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
     *string_buf_ptr++ = '\n';
     curr_len++;
     check_str(curr_len);
- }
-<IN_STRING>\0 {
-    cool_yylval.error_msg = "String contains null character";
-    BEGIN(INITIAL);
-    return (ERROR);
  }
 <IN_STRING>\\t {
     *string_buf_ptr++ = '\t';
@@ -164,19 +162,25 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
     curr_len++;
     check_str(curr_len);
  }
+<IN_STRING>\0 {
+    str_has_null = true;
+    BEGIN(NULL_IN_STR);
+ }
 <IN_STRING>\\\" {
     *string_buf_ptr++ = '"';
     curr_len++;
     check_str(curr_len);
  }
-<IN_STRING>\\. {
+<IN_STRING>\\[^\0] {
     *string_buf_ptr++ = yytext[1];
     curr_len++;
     check_str(curr_len);
  }
-<IN_STRING,STR_OVERFLOW>\n {
+<IN_STRING,STR_OVERFLOW,NULL_IN_STR>\n {
     if (str_overflow_flag) {
         cool_yylval.error_msg = "String constant too long";
+    } else if (str_has_null) {
+        cool_yylval.error_msg = "String contains null character";
     } else {
         cool_yylval.error_msg = "Unterminated string constant";
     }
@@ -189,19 +193,24 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
     BEGIN(INITIAL);
     return (ERROR);
  }
-<IN_STRING,STR_OVERFLOW>\" {
+<IN_STRING,STR_OVERFLOW,NULL_IN_STR>\" {
     if (str_overflow_flag) {
         cool_yylval.error_msg = "String constant too long";
         BEGIN(INITIAL);
         return (ERROR);
+    } else if (str_has_null) {
+        cool_yylval.error_msg = "String contains null character";
+        BEGIN(INITIAL);
+        return (ERROR);
     }
+
     *string_buf_ptr = 0;
     cool_yylval.symbol = inttable.add_string(string_buf);
     BEGIN(INITIAL);
     return (STR_CONST);
  }
 
-<STR_OVERFLOW>.
+<STR_OVERFLOW,NULL_IN_STR>.
 
 <IN_STRING>. {
     *string_buf_ptr++ = *yytext;
