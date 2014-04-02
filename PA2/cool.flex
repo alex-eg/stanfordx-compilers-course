@@ -244,7 +244,9 @@ f[Aa][Ll][Ss][Ee] {
     return (INT_CONST);
 }
 
-"--".*\n curr_lineno++;/* one-line comment */
+
+"--".*
+
 [ \t\f\r\v]+
 \n curr_lineno++;
 
