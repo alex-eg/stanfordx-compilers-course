@@ -50,6 +50,7 @@ extern YYSTYPE cool_yylval;
  */
 
 DARROW          =>
+DIGIT           [0-9]
 
 %%
 
