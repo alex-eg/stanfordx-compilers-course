@@ -149,23 +149,13 @@ IDCLASS [A-Z]([A-z]|[0-9]|_)*
     curr_len++;
     check_str(curr_len);
  }
-<IN_STRING>\\b {
-    *string_buf_ptr++ = '\b';
-    curr_len++;
-    check_str(curr_len);
- }
 <IN_STRING>\\f {
     *string_buf_ptr++ = '\f';
     curr_len++;
     check_str(curr_len);
  }
-<IN_STRING>\\r {
-    *string_buf_ptr++ = '\r';
-    curr_len++;
-    check_str(curr_len);
- }
-<IN_STRING>\\v {
-    *string_buf_ptr++ = '\v';
+<IN_STRING>\\b {
+    *string_buf_ptr++ = '\b';
     curr_len++;
     check_str(curr_len);
  }
