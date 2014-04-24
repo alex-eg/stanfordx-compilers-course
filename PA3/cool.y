@@ -174,7 +174,7 @@
     /* Feature list may be empty, but no empty features in list. */
     feature_list :		/* empty */
     {  $$ = nil_Features(); }
-    | feature
+    | feature ';'
     { $$ = single_Features($1); }
     | feature_list feature
     { $$ = append_Features($1, single_Features($2)); }
@@ -196,6 +196,8 @@
     | expr_list expr { $$ = append_Expressions($1, single_Expressions($2)); }
 
     expr : { $$ = no_expr(); }
+    | INT_CONST { $$ = int_const($1); }
+    | expr '+' expr { $$ = plus($1, $3); }
     | '(' expr ')' { $$ = $2; }
     | LET OBJECTID ':' TYPEID IN expr
     { $$ = let($2, $4, no_expr(), $6); }
