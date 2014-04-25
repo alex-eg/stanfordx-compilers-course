@@ -214,6 +214,7 @@
 
     expr :
     INT_CONST { $$ = int_const($1); }
+    | STR_CONST { $$ = string_const($1); }
     | expr '+' expr { $$ = plus($1, $3); }
     | '(' expr ')' { $$ = $2; }
     | OBJECTID expr_list
