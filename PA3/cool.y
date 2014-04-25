@@ -135,17 +135,17 @@
     %type <class_> class
     
     /* You will want to change the following line. */
-    %type <features> feature_list
+    %type <features> feature_list feature_items
     %type <feature> feature
 
-    %type <expressions> expr_list
+    %type <expressions> expr_list expr_items
     %type <expression> expr
 
     %type <formal> formal
-    %type <formals> formal_list
+    %type <formals> formal_list formal_items
 
     /* Precedence declarations go here. */
-    
+    %left '+'
     
     %%
     /* 
@@ -164,52 +164,64 @@
     ;
     
     /* If no parent is specified, the class inherits from the Object class. */
-    class	: CLASS TYPEID '{' feature_list '}' ';'
-    { $$ = class_($2,idtable.add_string("Object"),$4,
+    class	: CLASS TYPEID feature_list ';'
+    { $$ = class_($2,idtable.add_string("Object"),$3,
     stringtable.add_string(curr_filename)); }
     | CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
     { $$ = class_($2,$4,$6,stringtable.add_string(curr_filename)); }
     ;
     
     /* Feature list may be empty, but no empty features in list. */
-    feature_list :		/* empty */
-    {  $$ = nil_Features(); }
-    | feature ';'
+    feature_list : '{' '}'/* empty */
+    { $$ = nil_Features(); }
+    | '{' feature_items '}' { $$ = $2; }
+    ;
+
+    feature_items :  
+    feature ';'
     { $$ = single_Features($1); }
-    | feature_list feature
+    | feature_items feature ';'
     { $$ = append_Features($1, single_Features($2)); }
     ;
 
-    feature : OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'
-    { $$ = method($1, $3, $6, $8); }
+    feature : OBJECTID formal_list ':' TYPEID '{' expr '}'
+    { $$ = method($1, $2, $4, $6); }
     | OBJECTID ':' TYPEID ASSIGN expr
     { $$ = attr($1, $3, $5); }
     | OBJECTID ':' TYPEID { $$ = attr($1, $3, no_expr()); }
     ;
+ 
+    formal_list : '(' ')' { $$ = nil_Formals(); }
+    | '(' formal_items ')' { $$ = $2; }
+    ;
 
-    formal_list : { $$ = nil_Formals(); }
-    | formal { $$ = single_Formals($1); }
-    | formal_list ',' formal { $$ = append_Formals($1, single_Formals($3)); }
+    formal_items :
+    formal { $$ = single_Formals($1); }
+    | formal_items ',' formal { $$ = append_Formals($1, single_Formals($3)); }
     ;
 
     formal : OBJECTID ':' TYPEID { $$ = formal($1, $3); }
     ;    
 
-    expr_list : { $$ = nil_Expressions(); }
-    | expr { $$ = single_Expressions($1); }
-    | expr_list expr { $$ = append_Expressions($1, single_Expressions($2)); }
+    expr_list : '(' ')' { $$ = nil_Expressions(); }
+    | '(' expr_items ')' { $$ = $2; }
     ;
 
-    expr : { $$ = no_expr(); }
-    | INT_CONST { $$ = int_const($1); }
+    expr_items :
+    expr { $$ = single_Expressions($1); }
+    | expr_items expr { $$ = append_Expressions($1, single_Expressions($2)); }
+    ;
+
+    expr :
+    INT_CONST { $$ = int_const($1); }
     | expr '+' expr { $$ = plus($1, $3); }
     | '(' expr ')' { $$ = $2; }
-    | OBJECTID '(' expr_list ')' 
-{ $$ = dispatch(object(stringtable.add_string("self")), $1, $3); }
-    | LET OBJECTID ':' TYPEID IN expr
-    { $$ = let($2, $4, no_expr(), $6); }
+    | OBJECTID expr_list
+    { $$ = dispatch(object(stringtable.add_string("self")), $1, $2); }
     | LET OBJECTID ':' TYPEID ASSIGN expr IN expr
     { $$ = let($2, $4, $6, $8); }
+    | LET OBJECTID ':' TYPEID IN expr
+    { $$ = let($2, $4, no_expr(), $6); }
     ;
     /* end of grammar */
     %%
