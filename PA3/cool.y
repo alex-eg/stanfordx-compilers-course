@@ -124,7 +124,7 @@
     
     /*  DON'T CHANGE ANYTHING ABOVE THIS LINE, OR YOUR PARSER WONT WORK       */
     /**************************************************************************/
-    
+
     /* Complete the nonterminal list below, giving a type for the semantic
     value of each non terminal. (See section 3.6 in the bison 
     documentation for details). */
@@ -178,31 +178,39 @@
     { $$ = single_Features($1); }
     | feature_list feature
     { $$ = append_Features($1, single_Features($2)); }
+    ;
 
     feature : OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}'
     { $$ = method($1, $3, $6, $8); }
     | OBJECTID ':' TYPEID ASSIGN expr
     { $$ = attr($1, $3, $5); }
     | OBJECTID ':' TYPEID { $$ = attr($1, $3, no_expr()); }
+    ;
 
     formal_list : { $$ = nil_Formals(); }
     | formal { $$ = single_Formals($1); }
     | formal_list ',' formal { $$ = append_Formals($1, single_Formals($3)); }
+    ;
 
     formal : OBJECTID ':' TYPEID { $$ = formal($1, $3); }
-    
+    ;    
+
     expr_list : { $$ = nil_Expressions(); }
     | expr { $$ = single_Expressions($1); }
     | expr_list expr { $$ = append_Expressions($1, single_Expressions($2)); }
+    ;
 
     expr : { $$ = no_expr(); }
     | INT_CONST { $$ = int_const($1); }
     | expr '+' expr { $$ = plus($1, $3); }
     | '(' expr ')' { $$ = $2; }
+    | OBJECTID '(' expr_list ')' 
+{ $$ = dispatch(object(stringtable.add_string("self")), $1, $3); }
     | LET OBJECTID ':' TYPEID IN expr
     { $$ = let($2, $4, no_expr(), $6); }
     | LET OBJECTID ':' TYPEID ASSIGN expr IN expr
     { $$ = let($2, $4, $6, $8); }
+    ;
     /* end of grammar */
     %%
     
