@@ -168,7 +168,9 @@
     ;
     
     class_list
-    : class			/* single class */
+    : error
+    { $$ = nil_Classes(); }
+    | class			/* single class */
     { $$ = single_Classes($1);
     parse_results = $$; }
     | class_list class	/* several classes */
@@ -190,8 +192,9 @@
     | '{' feature_items '}' { $$ = $2; }
     ;
 
-    feature_items :  
-    feature ';'
+    feature_items :
+    error ';' { $$ = nil_Features(); }
+    | feature ';'
     { $$ = single_Features($1); }
     | feature_items feature ';'
     { $$ = append_Features($1, single_Features($2)); }
@@ -233,7 +236,8 @@
     ;
 
     block_expr :
-    expr ';' { $$ = single_Expressions($1); }
+    error ';' { $$ = nil_Expressions(); }
+    | expr ';' { $$ = single_Expressions($1); }
     | block_expr expr ';' { $$ = append_Expressions($1, single_Expressions($2)); }
 
     expr :
@@ -276,8 +280,9 @@
     { $$ = $2; } 
     ;
 
-    single_let_binding : OBJECTID ':' TYPEID let_maybe_init let_tail
-    { $$ = let($1, $3, $4, $5); }
+    single_let_binding
+    : OBJECTID ':' TYPEID let_maybe_init let_tail { $$ = let($1, $3, $4, $5); }
+    | OBJECTID ':' TYPEID error let_tail { $$ = no_expr(); }
     ;
 
     let_tail : IN expr { $$ = $2; }
