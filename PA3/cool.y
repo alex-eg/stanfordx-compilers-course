@@ -272,16 +272,16 @@
     | CASE expr OF case_list ESAC
     { $$ = typcase($2, $4); }
 
-    | LET more_let_bindings
+    | LET single_let_binding %prec LET
     { $$ = $2; } 
     ;
 
-    more_let_bindings : single_let_binding { $$ = $1; }
-    | more_let_bindings ',' single_let_binding {$$ = $3; }
+    single_let_binding : OBJECTID ':' TYPEID let_maybe_init let_tail
+    { $$ = let($1, $3, $4, $5); }
     ;
- 
-    single_let_binding : OBJECTID ':' TYPEID let_maybe_init IN expr
-    { $$ = let($1, $3, $4, $6); }
+
+    let_tail : IN expr { $$ = $2; }
+    | ',' single_let_binding { $$ = $2; }
     ;
     
     let_maybe_init : /* empty */ { $$ = no_expr(); }
