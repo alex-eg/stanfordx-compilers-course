@@ -216,11 +216,11 @@
     formal : OBJECTID ':' TYPEID { $$ = formal($1, $3); }
     ;    
 
-    case_list : case_ { $$ = single_Cases($1);}
-    | case_list ';' case_ { $$ = append_Cases($1, single_Cases($3)); }
+    case_list : case_ ';'{ $$ = single_Cases($1);}
+    | case_list case_ ';' { $$ = append_Cases($1, single_Cases($2)); }
     ;
    
-    case_ : OBJECTID ':' TYPEID DARROW expr ';'
+    case_ : OBJECTID ':' TYPEID DARROW expr
     { $$ = branch($1, $3, $5); }
 
     expr_list : '(' ')' { $$ = nil_Expressions(); }
