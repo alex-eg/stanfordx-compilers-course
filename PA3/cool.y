@@ -149,7 +149,7 @@
 
     /* Precedence declarations go here. */
 
-    %nonassoc LET IN
+    %nonassoc IN
     %right DARROW
     %right ASSIGN
     %right NOT
