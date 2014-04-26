@@ -138,15 +138,28 @@
     %type <features> feature_list feature_items
     %type <feature> feature
 
-    %type <expressions> expr_list expr_items
-    %type <expression> expr
+    %type <expressions> expr_list expr_items block_expr
+    %type <expression> expr let_maybe_init single_let_binding more_let_bindings
 
     %type <formal> formal
     %type <formals> formal_list formal_items
 
+    %type <case_> case_
+    %type <cases> case_list
+
     /* Precedence declarations go here. */
-    %left '+'
-    
+    %right LET
+
+    %left '.' 
+    %left '@'
+    %right '~'
+    %right ISVOID
+    %left '*' '/'
+    %left '+' '-'
+    %left '<' '=' LE
+    %right NOT
+    %left ASSIGN IN
+    %right DARROW
     %%
     /* 
     Save the root of the abstract syntax tree in a global variable.
@@ -203,27 +216,78 @@
     formal : OBJECTID ':' TYPEID { $$ = formal($1, $3); }
     ;    
 
+    case_list : case_ { $$ = single_Cases($1);}
+    | case_list ';' case_ { $$ = append_Cases($1, single_Cases($3)); }
+    ;
+   
+    case_ : OBJECTID ':' TYPEID DARROW expr ';'
+    { $$ = branch($1, $3, $5); }
+
     expr_list : '(' ')' { $$ = nil_Expressions(); }
     | '(' expr_items ')' { $$ = $2; }
     ;
 
     expr_items :
     expr { $$ = single_Expressions($1); }
-    | expr_items expr { $$ = append_Expressions($1, single_Expressions($2)); }
+    | expr_items ',' expr { $$ = append_Expressions($1, single_Expressions($3)); }
     ;
+
+    block_expr :
+    expr ';' { $$ = single_Expressions($1); }
+    | block_expr expr ';' { $$ = append_Expressions($1, single_Expressions($2)); }
 
     expr :
     INT_CONST { $$ = int_const($1); }
     | STR_CONST { $$ = string_const($1); }
+    | BOOL_CONST { $$ = bool_const($1); }
+    | NOT expr { $$ = neg($2); }
+    | expr '=' expr { $$ = eq($1, $3); }
+    | expr '<' expr { $$ = lt($1, $3); }
+    | expr LE expr { $$ = leq($1, $3); }
+    | '~' expr { $$ = comp($2); }
+    | expr '*' expr { $$ = mul($1, $3); }
+    | expr '/' expr { $$ = divide($1, $3); }
+    | expr '-' expr { $$ = sub($1, $3); }
     | expr '+' expr { $$ = plus($1, $3); }
     | '(' expr ')' { $$ = $2; }
+    | '{' block_expr '}' { $$ = block($2); }
+    | OBJECTID { $$ = object($1); }
+    | NEW TYPEID { $$ = new_($2); }
+    | ISVOID expr { $$ = isvoid($2); };
     | OBJECTID expr_list
     { $$ = dispatch(object(stringtable.add_string("self")), $1, $2); }
-    | LET OBJECTID ':' TYPEID ASSIGN expr IN expr
-    { $$ = let($2, $4, $6, $8); }
-    | LET OBJECTID ':' TYPEID IN expr
-    { $$ = let($2, $4, no_expr(), $6); }
+    | OBJECTID ASSIGN expr { $$ = assign($1, $3); }
+    | expr '@' TYPEID '.' OBJECTID expr_list
+    { $$ = static_dispatch($1, $3, $5, $6); }
+    | expr '.' OBJECTID expr_list
+    { $$ = dispatch($1, $3, $4); }
+    /* Here be dragons */
+
+    | IF expr THEN expr ELSE expr FI
+    { $$ = cond($2, $4, $6); }
+
+    | WHILE expr LOOP expr POOL
+    { $$ = loop($2, $4); }
+
+    | CASE expr OF case_list ESAC
+    { $$ = typcase($2, $4); }
+
+    | LET more_let_bindings
+    { $$ = $2; } 
     ;
+
+    more_let_bindings : single_let_binding { $$ = $1; }
+    | more_let_bindings ',' single_let_binding {$$ = $3; }
+    ;
+ 
+    single_let_binding : OBJECTID ':' TYPEID let_maybe_init IN expr
+    { $$ = let($1, $3, $4, $6); }
+    ;
+    
+    let_maybe_init : /* empty */ { $$ = no_expr(); }
+    | ASSIGN expr { $$ = $2; }
+    ;
+
     /* end of grammar */
     %%
     
