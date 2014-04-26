@@ -139,7 +139,7 @@
     %type <feature> feature
 
     %type <expressions> expr_list expr_items block_expr
-    %type <expression> expr let_maybe_init single_let_binding more_let_bindings
+    %type <expression> expr let_maybe_init single_let_binding let_tail
 
     %type <formal> formal
     %type <formals> formal_list formal_items
