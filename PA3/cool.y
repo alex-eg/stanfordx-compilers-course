@@ -240,11 +240,11 @@
     INT_CONST { $$ = int_const($1); }
     | STR_CONST { $$ = string_const($1); }
     | BOOL_CONST { $$ = bool_const($1); }
-    | NOT expr { $$ = neg($2); }
+    | NOT expr { $$ = comp($2); }
     | expr '=' expr { $$ = eq($1, $3); }
     | expr '<' expr { $$ = lt($1, $3); }
     | expr LE expr { $$ = leq($1, $3); }
-    | '~' expr { $$ = comp($2); }
+    | '~' expr { $$ = neg($2); }
     | expr '*' expr { $$ = mul($1, $3); }
     | expr '/' expr { $$ = divide($1, $3); }
     | expr '-' expr { $$ = sub($1, $3); }
