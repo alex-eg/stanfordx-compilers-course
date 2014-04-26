@@ -240,8 +240,8 @@
     | expr ';' { $$ = single_Expressions($1); }
     | block_expr expr ';' { $$ = append_Expressions($1, single_Expressions($2)); }
 
-    expr :
-    INT_CONST { $$ = int_const($1); }
+    expr
+    : INT_CONST { $$ = int_const($1); }
     | STR_CONST { $$ = string_const($1); }
     | BOOL_CONST { $$ = bool_const($1); }
     | NOT expr { $$ = comp($2); }
@@ -276,7 +276,7 @@
     | CASE expr OF case_list ESAC
     { $$ = typcase($2, $4); }
 
-    | LET single_let_binding %prec LET
+    | LET single_let_binding
     { $$ = $2; } 
     ;
 
@@ -285,11 +285,13 @@
     | OBJECTID ':' TYPEID error let_tail { $$ = no_expr(); }
     ;
 
-    let_tail : IN expr { $$ = $2; }
+    let_tail
+    : IN expr { $$ = $2; }
     | ',' single_let_binding { $$ = $2; }
     ;
     
-    let_maybe_init : /* empty */ { $$ = no_expr(); }
+    let_maybe_init
+    : /* empty */ { $$ = no_expr(); }
     | ASSIGN expr { $$ = $2; }
     ;
 
