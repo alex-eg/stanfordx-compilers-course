@@ -148,18 +148,18 @@
     %type <cases> case_list
 
     /* Precedence declarations go here. */
-    %right LET
 
-    %left '.' 
-    %left '@'
-    %right '~'
-    %right ISVOID
-    %left '*' '/'
-    %left '+' '-'
-    %left '<' '=' LE
-    %right NOT
-    %left ASSIGN IN
+    %nonassoc LET IN
     %right DARROW
+    %right ASSIGN
+    %right NOT
+    %nonassoc '<' '=' LE
+    %left '+' '-'
+    %left '*' '/'
+    %right ISVOID
+    %right '~'
+    %left '@'
+    %left '.'
     %%
     /* 
     Save the root of the abstract syntax tree in a global variable.
