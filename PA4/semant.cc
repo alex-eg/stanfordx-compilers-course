@@ -19,8 +19,7 @@ extern char *curr_filename;
 // as fixed names used by the runtime system.
 //
 //////////////////////////////////////////////////////////////////////
-static Symbol 
-    arg,
+static Symbol arg,
     arg2,
     Bool,
     concat,
@@ -92,7 +91,7 @@ ClassTable::ClassTable(Classes classes) : semant_errors(0) , error_stream(cerr) 
 void ClassTable::install_basic_classes() {
 
     // The tree package uses these globals to annotate the classes built below.
-   // curr_lineno  = 0;
+    // curr_lineno  = 0;
     Symbol filename = stringtable.add_string("<basic class>");
     
     // The following demonstrates how to create dummy parse trees to
@@ -230,13 +229,13 @@ ostream& ClassTable::semant_error()
 
      1) Check that the program is semantically correct
      2) Decorate the abstract syntax tree with type information
-        by setting the `type' field in each Expression node.
-        (see `tree.h')
+     by setting the `type' field in each Expression node.
+     (see `tree.h')
 
      You are free to first do 1), make sure you catch all semantic
      errors. Part 2) can be done in a second stage, when you want
      to build mycoolc.
- */
+*/
 void program_class::semant()
 {
     initialize_constants();
