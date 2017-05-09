@@ -18,5 +18,8 @@ cool-lex.cc: cool.flex
 .cc.o:
 	${CC} ${CFLAGS} -c $<
 
+test:
+	./lexer hello_world.cl
+
 clean:
 	rm -f *.o lexer cool-lex.cc
