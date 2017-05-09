@@ -23,3 +23,5 @@ test:
 
 clean:
 	rm -f *.o lexer cool-lex.cc
+
+.PHONY: test clean
