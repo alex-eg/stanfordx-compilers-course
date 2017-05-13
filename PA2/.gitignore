@@ -1,0 +1,12 @@
+*
+!Makefile
+!*.cc
+!*.h
+!*.cl
+!PA1.pdf
+!cool.flex
+!cool_manual.pdf
+
+cool-lex.cc
+
+!.gitignore
