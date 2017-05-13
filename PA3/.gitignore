@@ -1,4 +1,11 @@
 *
+!lexer
+!cgen
+!semant
+!*.cl
+!Makefile
+!*.h
+!*.cc
 !PA2.pdf
 !cool.y
 !hello_world.cl
